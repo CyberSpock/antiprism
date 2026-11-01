@@ -65,6 +65,7 @@ Options
   -I <dist> maximum distance from origin for viewable points
             (default: ignored)
   Scene options
+  -T <str>  window title (default: Antiview)
 %s
 
 Viewing
@@ -120,12 +121,14 @@ void vw_opts::process_command_line(int argc, char **argv)
 
   handle_long_opts(argc, argv);
 
-  while ((c = getopt(argc, argv, ":hv:e:iV:E:F:w:m:x:n:s:t:I:D:C:L:R:B:")) !=
+  while ((c = getopt(argc, argv, ":hv:e:iV:E:F:w:m:x:n:s:t:I:D:C:L:R:B:T:")) !=
          -1) {
     if (common_opts(c, optopt))
       continue;
 
     switch (c) { // Keep switch for consistency/maintainability
+    case 'T':
+      break;
     default:
       if (!(stat = read_disp_option(c, optarg))) {
         if (stat.is_warning())
@@ -192,13 +195,16 @@ bool glutInitFltk(int *argc, char **argv)
 
 int main(int argc, char *argv[])
 {
-  // Check if a -geometry argument was given
+  // Check if a -geometry or -T <title> argument was given
   bool geometry_arg = false;
-  for (int i = 1; i < argc; i++)
-    if (strcmp(argv[i], "-geometry") == 0) {
+  std::string window_title = "Antiview";
+
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-geometry") == 0)
       geometry_arg = true;
-      break;
-    }
+    else if (strcmp(argv[i], "-T") == 0 && i + 1 < argc)
+      window_title += " - " + std::string(argv[++i]);
+  }
 
   vw_opts opts;
 
@@ -216,7 +222,7 @@ int main(int argc, char *argv[])
     glutInitWindowSize(600, 500);
     glutInitWindowPosition(100, 50);
   }
-  glutCreateWindow("Antiview");
+  glutCreateWindow(window_title.c_str());
   glutDisplayFunc(display_cb);
   glutIdleFunc(glut_idle_cb);
   glutReshapeFunc(reshape_cb);
